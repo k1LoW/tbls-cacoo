@@ -1,4 +1,4 @@
-# tbls-cacoo
+# tbls-cacoo [![Build Status](https://github.com/k1LoW/tbls-cacoo/workflows/build/badge.svg)](https://github.com/k1LoW/tbls-cacoo/actions) [![GitHub release](https://img.shields.io/github/release/k1LoW/tbls-cacoo.svg)](https://github.com/k1LoW/tbls-cacoo/releases)
 
 `tbls-cacoo` is an external subcommand of tbls for [Cacoo](https://cacoo.com).
 
