@@ -1,0 +1,74 @@
+before:
+  hooks:
+    - go mod download
+    - go mod tidy
+builds:
+-
+  id: tbls-cacoo-linux
+  env:
+    - CGO_ENABLED=0
+  goos:
+    - linux
+  ldflags:
+    - -s -w -X github.com/k1LoW/tbls-cacoo.version={{.Version}} -X github.com/k1LoW/tbls-cacoo.commit={{.FullCommit}} -X github.com/k1LoW/tbls-cacoo.date={{.Date}} -X github.com/k1LoW/tbls-cacoo/version.Version={{.Version}}
+-
+  id: tbls-cacoo-darwin
+  env:
+    - CGO_ENABLED=0
+  goos:
+    - darwin
+  ldflags:
+    - -s -w -X github.com/k1LoW/tbls-cacoo.version={{.Version}} -X github.com/k1LoW/tbls-cacoo.commit={{.FullCommit}} -X github.com/k1LoW/tbls-cacoo.date={{.Date}} -X github.com/k1LoW/tbls-cacoo/version.Version={{.Version}}
+archives:
+-
+  id: tbls-cacoo-archive
+  name_template: '{{ .ProjectName }}_v{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
+  format_overrides:
+    - goos: darwin
+      format: zip
+  files:
+    - CREDITS
+    - README.md
+    - CHANGELOG.md
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Version }}-next"
+changelog:
+  skip: true
+brews:
+-
+  name: tbls-cacoo
+  github:
+    owner: k1LoW
+    name: homebrew-tap
+  commit_author:
+    name: k1LoW
+    email: k1lowxb@gmail.com
+  homepage: https://github.com/k1LoW/tbls-cacoo
+  description: tbls-cacoo is an external subcommand of tbls for Cacoo.
+  dependencies:
+    - tbls
+  install: |
+    system './tbls-cacoo', 'completion', 'bash', '--out', 'tbls-cacoo.bash'
+    system './tbls-cacoo', 'completion', 'zsh', '--out', 'tbls-cacoo.zsh'
+    bin.install 'tbls-cacoo'
+    bash_completion.install 'tbls-cacoo.bash' => 'tbls-cacoo'
+    zsh_completion.install 'tbls-cacoo.zsh' => '_tbls-cacoo'
+nfpms:
+  -
+    id: tbls-cacoo-nfpms
+    file_name_template: "{{ .ProjectName }}_{{ .Version }}-1_{{ .Arch }}"
+    builds:
+    - tbls-cacoo-linux
+    homepage: https://github.com/k1LoW/tbls-cacoo
+    maintainer: Ken'ichiro Oyama <k1lowxb@gmail.com>
+    description: tbls-cacoo is an external subcommand of tbls for Cacoo.
+    license: MIT
+    formats:
+      - deb
+      - rpm
+    dependencies:
+      - tbls
+    bindir: /usr/bin
+    epoch: 1
