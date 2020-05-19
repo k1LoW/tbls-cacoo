@@ -23,6 +23,8 @@ package cmd
 
 import (
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -30,28 +32,68 @@ import (
 // completionCmd represents the completion command
 var completionCmd = &cobra.Command{
 	Use:   "completion",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "output shell completion code",
+	Long: `output shell completion code.
+To configure your shell to load completions for each session
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("completion called")
+# bash
+echo '. <(tbls-cacoo completion bash)' > ~/.bashrc
+
+# zsh
+tbls-cacoo completion zsh > $fpath[1]/_tbls-meta
+`,
+	ValidArgs: []string{"bash", "zsh"},
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) != 1 {
+			return fmt.Errorf("accepts 1 arg, received %d", len(args))
+		}
+		if err := cobra.OnlyValidArgs(cmd, args); err != nil {
+			return err
+		}
+		return nil
 	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var (
+			o   *os.File
+			err error
+		)
+		sh := args[0]
+		if out == "" {
+			o = os.Stdout
+		} else {
+			o, err = os.Create(out)
+			if err != nil {
+				cmd.PrintErrln(err)
+				os.Exit(1)
+			}
+		}
+		if err := runCompletion(cmd, sh, o); err != nil {
+			_ = o.Close()
+			cmd.PrintErrln(err)
+			os.Exit(1)
+		}
+		if err := o.Close(); err != nil {
+			cmd.PrintErrln(err)
+			os.Exit(1)
+		}
+	},
+}
+
+func runCompletion(cmd *cobra.Command, sh string, o io.Writer) error {
+	switch sh {
+	case "bash":
+		if err := cmd.GenBashCompletion(o); err != nil {
+			return err
+		}
+	case "zsh":
+		if err := cmd.GenZshCompletion(o); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func init() {
 	rootCmd.AddCommand(completionCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// completionCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// completionCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	completionCmd.Flags().StringVarP(&out, "out", "o", "", "output file path")
 }

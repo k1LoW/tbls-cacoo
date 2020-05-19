@@ -22,36 +22,49 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"fmt"
+	"io"
+	"os"
 
+	"github.com/k1LoW/tbls-cacoo/csv"
+	"github.com/k1LoW/tbls/datasource"
 	"github.com/spf13/cobra"
 )
 
-// csvCmd represents the csv command
 var csvCmd = &cobra.Command{
 	Use:   "csv",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "generate CSV for Cacoo's Database Schema Importer",
+	Long:  `generate CSV for Cacoo's Database Schema Importer (https://support.cacoo.com/hc/en-us/articles/360045672494).`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("csv called")
+		var (
+			o   *os.File
+			err error
+		)
+		if out == "" {
+			o = os.Stdout
+		} else {
+			o, err = os.Create(out)
+			if err != nil {
+				cmd.PrintErrln(err)
+				os.Exit(1)
+			}
+		}
+		if err := runCSV(cmd, o); err != nil {
+			cmd.PrintErrln(err)
+			os.Exit(1)
+		}
 	},
+}
+
+func runCSV(cmd *cobra.Command, stdout io.Writer) error {
+	c := csv.New()
+	s, err := datasource.AnalyzeJSONStringOrFile(os.Getenv("TBLS_SCHEMA"))
+	if err != nil {
+		return err
+	}
+	return c.OutputSchema(stdout, s)
 }
 
 func init() {
 	rootCmd.AddCommand(csvCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// csvCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// csvCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	csvCmd.Flags().StringVarP(&out, "out", "o", "", "output file path")
 }
