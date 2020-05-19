@@ -1,6 +1,6 @@
 # tbls-cacoo
 
-`tbls-cacoo` is an external subcommand of tbls for Cacoo.
+`tbls-cacoo` is an external subcommand of tbls for [Cacoo](https://cacoo.com).
 
 ## Usage
 
