@@ -63,18 +63,15 @@ tbls-cacoo completion zsh > $fpath[1]/_tbls-meta
 		} else {
 			o, err = os.Create(out)
 			if err != nil {
-				cmd.PrintErrln(err)
-				os.Exit(1)
+				printFatalln(cmd, err)
 			}
 		}
 		if err := runCompletion(cmd, sh, o); err != nil {
 			_ = o.Close()
-			cmd.PrintErrln(err)
-			os.Exit(1)
+			printFatalln(cmd, err)
 		}
 		if err := o.Close(); err != nil {
-			cmd.PrintErrln(err)
-			os.Exit(1)
+			printFatalln(cmd, err)
 		}
 	},
 }
@@ -82,11 +79,11 @@ tbls-cacoo completion zsh > $fpath[1]/_tbls-meta
 func runCompletion(cmd *cobra.Command, sh string, o io.Writer) error {
 	switch sh {
 	case "bash":
-		if err := cmd.GenBashCompletion(o); err != nil {
+		if err := cmd.Root().GenBashCompletion(o); err != nil {
 			return err
 		}
 	case "zsh":
-		if err := cmd.GenZshCompletion(o); err != nil {
+		if err := cmd.Root().GenZshCompletion(o); err != nil {
 			return err
 		}
 	}

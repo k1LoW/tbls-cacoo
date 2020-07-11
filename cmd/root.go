@@ -23,8 +23,11 @@ package cmd
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 
+	"github.com/k1LoW/tbls-cacoo/version"
 	"github.com/spf13/cobra"
 )
 
@@ -38,10 +41,40 @@ var rootCmd = &cobra.Command{
 }
 
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	rootCmd.SetOut(os.Stdout)
+	rootCmd.SetErr(os.Stderr)
+
+	log.SetOutput(ioutil.Discard)
+	if env := os.Getenv("DEBUG"); env != "" {
+		debug, err := os.Create(fmt.Sprintf("%s.debug", version.Name))
+		if err != nil {
+			printFatalln(rootCmd, err)
+		}
+		log.SetOutput(debug)
 	}
+
+	if err := rootCmd.Execute(); err != nil {
+		printFatalln(rootCmd, err)
+	}
+}
+
+// https://github.com/spf13/cobra/pull/894
+func printErrln(c *cobra.Command, i ...interface{}) {
+	c.PrintErr(fmt.Sprintln(i...))
+}
+
+func printErrf(c *cobra.Command, format string, i ...interface{}) {
+	c.PrintErr(fmt.Sprintf(format, i...))
+}
+
+func printFatalln(c *cobra.Command, i ...interface{}) {
+	printErrln(c, i...)
+	os.Exit(1)
+}
+
+func printFatalf(c *cobra.Command, format string, i ...interface{}) {
+	printErrf(c, format, i...)
+	os.Exit(1)
 }
 
 func init() {}

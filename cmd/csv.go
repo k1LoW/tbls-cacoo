@@ -44,13 +44,11 @@ var csvCmd = &cobra.Command{
 		} else {
 			o, err = os.Create(out)
 			if err != nil {
-				cmd.PrintErrln(err)
-				os.Exit(1)
+				printFatalln(cmd, err)
 			}
 		}
 		if err := runCSV(cmd, o); err != nil {
-			cmd.PrintErrln(err)
-			os.Exit(1)
+			printFatalln(cmd, err)
 		}
 	},
 }
